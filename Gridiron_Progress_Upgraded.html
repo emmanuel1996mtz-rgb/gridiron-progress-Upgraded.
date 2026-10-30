@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gridiron Progress</title>
+<style>
+:root{--bg:#0b1118;--panel:#141e29;--panel2:#1b2937;--text:#eef4f8;--muted:#9db0c0;--accent:#83e0ad;--line:#2b3b4a;--gold:#f4c96b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:24px 18px 18px;background:linear-gradient(135deg,#152635,#101820);border-bottom:1px solid var(--line)}
+.wrap{max-width:1000px;margin:auto;padding:0 16px}h1{margin:0;font-size:28px;letter-spacing:.3px}header p{color:var(--muted);margin:5px 0 0}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}button,select,input,textarea{font:inherit}
+button{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 13px;border-radius:10px;cursor:pointer}
+button.active,button.primary{background:var(--accent);color:#092015;border-color:var(--accent);font-weight:700}
+button:disabled{opacity:.5;cursor:not-allowed}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stat{background:var(--panel2);padding:14px;border-radius:12px}.stat strong{display:block;font-size:25px}.muted{color:var(--muted)}.small{font-size:13px;color:var(--muted)}
+h2{font-size:20px;margin:0 0 10px}h3{font-size:16px;margin:0 0 6px}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.day{border-top:1px solid var(--line);padding:15px 0}.day:first-child{border-top:0}
+.tag{font-size:11px;letter-spacing:.5px;border:1px solid var(--line);border-radius:20px;padding:3px 8px;color:var(--accent);display:inline-block;margin-bottom:6px}
+.drill{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;background:#101923;border-radius:9px;margin:7px 0}
+.drill strong{display:block}.drill p{margin:3px 0 0;color:var(--muted);font-size:13px}
+input,select,textarea{background:#0e1720;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px;width:100%;max-width:100%}
+label{display:block;margin:9px 0 4px;color:var(--muted);font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+.progress{height:8px;background:#263442;border-radius:9px;overflow:hidden;margin:8px 0}.progress span{display:block;height:100%;background:var(--accent)}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;border-bottom:1px solid var(--line);padding:9px 6px;font-size:13px}
+.done{color:var(--accent);font-weight:700}.warning{border-left:3px solid var(--gold);padding:9px 12px;background:#282315;color:#f8e7b5;border-radius:6px}
+.hidden{display:none}.milestone{padding:12px 0;border-bottom:1px solid var(--line)}.milestone:last-child{border:0}
+footer{padding:25px 0;color:var(--muted);font-size:12px}
+@media(max-width:520px){h1{font-size:23px}.drill{grid-template-columns:1fr}.wrap{padding:0 12px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>🏈 Gridiron Progress</h1><p>RB + Defensive Line development · rotating weekly program</p></div></header>
+<main class="wrap">
+<nav>
+<button class="active" data-tab="dashboard">Dashboard</button><button data-tab="training">Training plan</button><button data-tab="milestones">Milestones</button><button data-tab="logs">Logs</button>
+</nav>
+<section id="dashboard">
+<div class="panel"><h2>Development dashboard</h2><p class="muted">Train with purpose. Track what you actually do. Build both position skill sets over time.</p>
+<div class="grid">
+<div class="stat"><span class="small">Workouts completed</span><strong id="completed">0</strong></div>
+<div class="stat"><span class="small">Current program week</span><strong id="currentWeek">1 / 4</strong></div>
+<div class="stat"><span class="small">40-yard baseline</span><strong>5.8 sec</strong></div>
+<div class="stat"><span class="small">Position focus</span><strong style="font-size:19px">RB + DL</strong></div>
+</div></div>
+<div class="panel"><h2>This week's progress</h2><div class="progress"><span id="weekBar" style="width:0%"></span></div><p class="muted" id="weekProgress">0 of 5 training days completed</p><button class="primary" onclick="showTab('training')">Open this week's plan</button></div>
+<div class="panel"><h2>Training rules</h2><ul class="muted"><li>Five planned training days; recovery days are intentionally not counted as workouts.</li><li>Use a coach or qualified adult for barbell technique, hand-shield work and pass-protection drills.</li><li>Keep sprint reps fast with full recovery; stop when speed or technique drops.</li><li>Do not add live collisions, tackling or unsupervised contact drills.</li></ul></div>
+</section>
+<section id="training" class="hidden">
+<div class="panel"><h2>Four-week rotating program</h2><p class="muted">The main movement patterns return so you can improve; accessory drills and position emphasis rotate. Each session is designed for about 60–75 minutes including warm-up and rest.</p>
+<div id="weekTabs" class="tabs"></div><div id="dayTabs" class="tabs"></div><div id="workout"></div></div>
+</section>
+<section id="milestones" class="hidden">
+<div class="panel"><h2>Your milestones</h2><p class="muted">Targets are checkpoints, not deadlines. Only test when recovered and with coach supervision. Record official, consistently measured results.</p><div id="milestoneList"></div></div>
+<div class="panel"><h2>Record a milestone result</h2>
+<label for="metric">Test / skill</label><select id="metric"><option>40-yard dash</option><option>10-yard split</option><option>5-10-5 shuttle</option><option>Bench press</option><option>Broad jump</option><option>RB ball-security circuit</option><option>RB cut-and-go circuit</option><option>DL get-off and first-step score</option><option>DL hand-fit and shed score</option><option>DL pass-rush move score</option></select>
+<div class="row"><div><label for="result">Result (time, reps, weight or score)</label><input id="result" placeholder="e.g. 5.75 sec or 8/10"></div><div><label for="date">Date</label><input id="date" type="date"></div></div>
+<label for="notes">Notes (conditions, coach feedback, technique)</label><textarea id="notes" rows="2" placeholder="Surface, timing method, what improved..."></textarea><button class="primary" onclick="addTest()">Save result</button></div>
+</section>
+<section id="logs" class="hidden"><div class="panel"><h2>Workout history</h2><div id="workoutLog" class="muted">No completed workouts yet.</div></div><div class="panel"><h2>Test history</h2><div id="testLog" class="muted">No test results yet.</div></div><button onclick="resetData()">Reset all saved progress</button></section>
+<footer>Progress is saved in this browser on this device. It does not automatically sync between your phone and computer. Keep training age-appropriate, supervised and pain-free.</footer>
+</main>
+<script>
+const plan=[
+[
+{day:"Monday",title:"Lower-body strength + RB footwork",focus:"Build leg strength and rehearse efficient footwork.",items:[
+["Warm-up","8–10 min","Easy jog, skips, leg swings and ankle rocks. Increase range gradually; do not stretch into pain."],
+["Goblet squat or coach-supervised squat","3 × 6–8","Brace your trunk, keep the whole foot planted and descend only as far as you can control. Leave 2–3 good reps in reserve."],
+["Romanian deadlift","3 × 8","Push hips back, keep the weight close and stop when hamstrings are loaded without rounding your back."],
+["Reverse lunge","2 × 8 each leg","Step back under control, keep front knee tracking over toes, then drive through the whole foot."],
+["RB: stance, gather and burst","4 × 3 reps","Start balanced in a two-point stance. Take a short gather step, stay low and accelerate straight for 5 yards."],
+["RB: press-the-hole footwork","4 reps","Approach a cone at controlled speed, press one side for two steps, plant once and burst through the opposite lane. No extra hops."],
+["Core: dead bug","2 × 8 each side","Keep lower back gently braced against the floor; move opposite arm and leg slowly."]
+]},
+{day:"Tuesday",title:"Acceleration + defensive-line get-off",focus:"High-quality short speed work and first-step mechanics.",items:[
+["Dynamic warm-up","10 min","Jog, skips, marching A-drills and progressive build-ups. Finish warm, not tired."],
+["10-yard acceleration","5 reps","Start from a consistent two-point stance. Push the ground back, keep first steps powerful and gradually rise. Rest 60–120 sec."],
+["DL: stance setup","4 × 3 reps","Feet balanced, hips loaded, eyes up, hands ready. Freeze and check posture before each get-off."],
+["DL: first-step get-off","5 × 2 reps","On a coach's visual or verbal cue, take the first step forward with no false step. Reset fully after each rep."],
+["DL: lateral step to square","3 × 3 each way","Take one controlled lateral step, bring feet under hips and square shoulders. Do not cross feet."],
+["RB: ball security cone run","4 runs","Hold ball high and tight with forearm over the tip and elbow close. Weave around cones without switching hands unless instructed."],
+["Cool-down","5 min","Walk until breathing settles; gentle mobility."]
+]},
+{day:"Wednesday",title:"Upper-body strength + DL hands",focus:"Build pushing and pulling strength for contact position skills.",items:[
+["Warm-up","8 min","Band pull-aparts, arm circles, light rows and easy push-ups."],
+["Bench press or DB press","3 × 6–8","Use a spotter for barbell bench. Lower under control, keep wrists stacked and stop well before form fails."],
+["Chest-supported row","3 × 8–10","Pull elbows toward hips, pause briefly and avoid shrugging."],
+["Lat pulldown","3 × 10","Pull to upper chest without leaning far back; control the return."],
+["DL: hand placement to shield","4 × 3","With coach holding a hand shield, strike with hands inside, thumbs up and elbows tight. Keep feet moving; no uncontrolled collision."],
+["DL: rip technique in air","3 × 3 each arm","Step through with near foot, rip the arm tightly past the imaginary blocker and keep shoulders low. Practice slowly before adding speed."],
+["Farmer carry","3 × 20 yd","Walk tall with steady steps and shoulders level."]
+]},
+{day:"Thursday",title:"Change of direction + RB cuts / DL movement",focus:"Deceleration, body control and position footwork.",items:[
+["Warm-up","10 min","Jog, lateral shuffle, skips and gradual accelerations."],
+["Deceleration stick","3 × 3","Run 5 yards, lower hips over several steps and hold a balanced athletic position for two seconds."],
+["5-10-5 walk-through then controlled reps","3 reps","Learn foot placement at each line first. Plant outside foot, keep hips low and push away; rest fully."],
+["RB: one-cut cone drill","4 reps","Approach the cone under control, plant outside foot once, keep shoulders square and accelerate 5 yards."],
+["RB: jump-cut footwork","3 × 3 each direction","Use a short lateral displacement, land balanced and get back downhill. Do not over-jump."],
+["DL: mirror shuffle","4 × 5 sec","Partner points left/right at walking-to-moderate speed. Stay square, short steps, no crossing feet. No contact."],
+["DL: shed-footwork pattern","3 × 3","Fit hands to a shield with coach, step laterally to clear the imaginary block, then accelerate 3 yards."]
+]},
+{day:"Friday",title:"Full-body strength + pass protection",focus:"Total-body strength and safe, controlled blocking footwork.",items:[
+["Warm-up","8 min","Easy bike or jog, hip hinges, bodyweight squats and shoulder mobility."],
+["Trap-bar deadlift or coached hinge","3 × 5","Brace before each rep, push floor away and stand tall. Use a moderate load and no grinding."],
+["Step-up","2 × 8 each","Use a stable box below knee height. Drive through the working leg; avoid bouncing off the trailing foot."],
+["Incline DB press","3 × 8","Control the lowering phase and keep shoulder blades stable."],
+["Cable row","3 × 10","Pull smoothly, pause and resist the weight on the way forward."],
+["RB: pass-protection mirror footwork","4 × 5 sec","With a coach or partner at low speed, keep a balanced base, short kick-slide steps and chest square. No live blocking."],
+["DL: pass-rush approach + counter footwork","3 × 2 each","Approach a stand-up bag or marker, show a speed rush path, plant and perform a controlled counter step. No player contact."],
+["Cool-down","5 min","Walk and easy mobility."]
+]}
+],
+[
+{day:"Monday",title:"Single-leg strength + RB balance",focus:"A new lower-body variation while retaining squat and hinge patterns.",items:[
+["Warm-up","8–10 min","Jog, skips, hip mobility and ankle rocks."],
+["Front squat or goblet squat","3 × 6","Keep ribs stacked over hips and elbows up. Use a load that allows consistent depth."],
+["DB Romanian deadlift","3 × 8","Hinge at hips, keep spine neutral and lower slowly."],
+["Split squat","2 × 8 each","Lower straight down with balance; use support if needed."],
+["RB: single-leg balance to burst","3 × 3 each","Balance for one second, load hips, then drive 5 yards. Reset fully."],
+["RB: rocker step and cut","4 reps","Use a small tempo change before one decisive plant and cut. Stay low and accelerate out."],
+["Side plank","2 × 20 sec each","Keep hips stacked and body in a straight line."]
+]},
+{day:"Tuesday",title:"Acceleration + DL hand fighting",focus:"Retain sprinting and get-off; change the hand technique emphasis.",items:[
+["Warm-up","10 min","Dynamic movement and two progressive 10-yard build-ups."],
+["10-yard acceleration","4 reps","Same start and surface each time; full recovery and crisp first three steps."],
+["Flying 10 build-up (controlled)","2 reps","Gradually accelerate over 15 yards, then run smoothly for 10 yards. Not an all-out test."],
+["DL: punch timing to shield","4 × 3","React to coach's cue, strike inside chest plate area of shield with hands, elbows tight, then reset."],
+["DL: club-rip sequence in air","3 × 3 each","Practice a compact club motion followed by a tight rip and step-through. Keep balance; no reaching across the body."],
+["DL: get-off to 5-yard finish","4 reps","First step forward, second step gains ground; accelerate through the finish cone."],
+["RB: high-and-tight through traffic cones","4 runs","Keep ball secured against ribs while weaving; eyes up and controlled turns."]
+]},
+{day:"Wednesday",title:"Upper strength + pulling power",focus:"A different upper-body setup with repeated basic push/pull work.",items:[
+["Warm-up","8 min","Band rows, shoulder circles and light presses."],
+["DB bench press","3 × 8","Lower with control; press without bouncing or locking aggressively."],
+["Seated cable row","3 × 10","Keep torso still and squeeze shoulder blades gently."],
+["Half-kneeling single-arm pulldown","2 × 10 each","Brace core and pull elbow toward side without rotating."],
+["Push-up","2 × quality reps","Stop while you can still maintain a straight body line."],
+["DL: hand replacement drill","3 × 4","On a shield, replace one hand inside while the other controls the frame; coach supervises."],
+["Suitcase carry","2 × 20 yd each","Carry one dumbbell without leaning; walk slowly and evenly."]
+]},
+{day:"Thursday",title:"Agility + RB vision / DL run-fit footwork",focus:"Practice reading a simple visual cue and moving under control.",items:[
+["Warm-up","10 min","Dynamic warm-up and progressive lateral movement."],
+["Lateral shuffle to 5-yard burst","3 each way","Shuffle three steps, plant outside foot and accelerate forward."],
+["RB: coach-point read drill","5 reps","Coach points to one of two cone lanes before you reach the decision point; keep eyes up, choose once and burst."],
+["RB: weave and secure","4 runs","Carry ball high and tight, weave around cones and finish balanced through a gate."],
+["DL: run-fit shuffle and close","4 reps","Start in stance, shuffle laterally to a cone, square shoulders and close under control. No tackle/contact."],
+["DL: near-foot, near-shoulder step pattern","3 × 3 each side","Step toward a marked gap with near foot, keep shoulders square and hands ready. Coach checks alignment."],
+["Easy tempo runs","5 × 15 sec","Comfortable pace with 45 sec walk. You should be able to speak."]
+]},
+{day:"Friday",title:"Power + pass-protection footwork",focus:"Explosive intent, safe landings and RB protection movement.",items:[
+["Warm-up","8 min","Easy jog, hinge pattern and landing practice."],
+["Medicine-ball chest pass","3 × 4","Use a light ball, brace and throw explosively to a clear wall/partner area."],
+["Low box jump or broad jump","3 × 3","Choose a low safe height; land quietly, hold balance and step down."],
+["Hip thrust","3 × 8","Brace, drive hips up without over-arching and pause briefly."],
+["Lateral step-up","2 × 8 each","Control knee alignment and push through working foot."],
+["RB: kick-slide pass-protection path","4 × 4 steps each side","Start balanced, step back and out at 45 degrees, keep feet from crossing and hands ready. No contact."],
+["RB: mirror and redirect","3 × 5 sec","Partner moves slowly side-to-side; mirror with short steps and stay between partner and a cone target."]
+]}
+],
+[
+{day:"Monday",title:"Lower strength + acceleration mechanics",focus:"Build strength and revisit efficient first-step body positions.",items:[
+["Warm-up","10 min","Jog, skips, hip mobility and bodyweight hinges."],
+["Squat variation","3 × 5–6","Choose a coach-approved squat; controlled descent and steady drive up."],
+["Romanian deadlift","3 × 8","Hips back, weight close, neutral spine."],
+["Reverse lunge","2 × 8 each","Smooth steps and balanced knee tracking."],
+["RB: falling start to 5 yards","4 reps","Lean from ankles until you must step, then accelerate without folding at the waist."],
+["DL: stance-to-first-step freeze","4 × 2","Explode on cue, freeze after two steps and check pad level, balance and direction."],
+["Pallof press","2 × 10 each","Resist rotation while pressing band/cable straight out."]
+]},
+{day:"Tuesday",title:"Speed + DL pass-rush footwork",focus:"A small sprint dose and a new rush-move combination.",items:[
+["Warm-up","10 min","Dynamic warm-up, skips and two build-ups."],
+["10-yard acceleration","4 reps","Full rest; consistent start and strong push through first steps."],
+["DL: speed-rush track","4 × 2","From stance, take a tight outside track around a cone or bag; keep shoulders low and finish through 5 yards."],
+["DL: hesitation to rip in air","3 × 3","Show a brief controlled hesitation, then step and rip past an imaginary blocker. Smooth before fast."],
+["DL: counter-step footwork","3 × 2 each","Plant outside foot, redirect hips and accelerate across a marker; no spin if balance is lost."],
+["RB: burst-and-brake","4 reps","Accelerate 5 yards, decelerate in several short steps and hold balance."],
+["RB: ball switch at cone","4 runs","Secure ball before and after a planned hand switch around a cone; never expose the ball."]
+]},
+{day:"Wednesday",title:"Upper strength + grip",focus:"Maintain the core strength patterns and add controlled grip work.",items:[
+["Warm-up","8 min","Band pull-aparts, light rows and presses."],
+["Bench press or DB press","3 × 6","Use spotter for barbell; smooth controlled reps, no maxing."],
+["One-arm DB row","3 × 10 each","Keep hips square and pull elbow toward hip."],
+["Lat pulldown","3 × 8–10","Avoid swinging; pause at bottom."],
+["Face pull","2 × 12","Pull toward face with elbows high and controlled shoulder blades."],
+["Farmer carry","3 × 20 yd","Use manageable dumbbells and walk tall."],
+["DL: grip-and-release on towel/handle","2 × 15 sec","Squeeze steadily, relax, repeat; no painful maximal holds."]
+]},
+{day:"Thursday",title:"Position technique circuit",focus:"Practice both roles with crisp repetitions and no live contact.",items:[
+["Warm-up","10 min","Dynamic warm-up and short movement prep."],
+["DL: stance → get-off → shuffle","3 rounds of 2 reps","Reset between each rep; maintain low hips and balanced feet."],
+["DL: hand fit, separate and close","3 × 3","Coach holds shield; fit hands inside, step to clear and accelerate 3 yards. Controlled only."],
+["DL: pursuit angle to cone","4 reps","Take a direct angle to a cone beyond the ball-carrier path; don't round the turn."],
+["RB: mesh/handoff exchange footwork","5 reps","Meet the imaginary quarterback at the correct depth, present near-side pocket and secure ball before turning."],
+["RB: press, plant and accelerate","4 reps","Press the cone for two steps, plant once and burst through the chosen lane."],
+["RB: pass-protection set","3 × 4 steps","Short kick-slide, balanced base, eyes on target. No contact."]
+]},
+{day:"Friday",title:"Full-body power + aerobic conditioning",focus:"Crisp power work followed by easy-to-moderate conditioning.",items:[
+["Warm-up","8–10 min","Easy jog, skips, mobility and landing practice."],
+["Medicine-ball scoop toss","3 × 4 each side","Light ball, rotate through hips and throw into a clear space."],
+["Broad jump","3 × 2","Jump forward, land quietly with knees aligned and hold two seconds."],
+["Goblet squat","3 × 8","Controlled reps and steady trunk."],
+["DB Romanian deadlift","3 × 8","Hinge with neutral spine and controlled tempo."],
+["Easy run/walk intervals","8 rounds: 30 sec easy / 30 sec walk","Keep effort conversational. This builds repeatable conditioning without sprinting every interval."]
+]}
+],
+[
+{day:"Monday",title:"Lower strength + RB change of pace",focus:"Repeat key strength patterns and sharpen a different running-back rhythm.",items:[
+["Warm-up","10 min","Jog, skips, ankle rocks and hip mobility."],
+["Goblet squat or coached squat","3 × 6–8","Stable feet, braced trunk, controlled depth."],
+["DB Romanian deadlift","3 × 8","Hips back, weight close, no back rounding."],
+["Step-up","2 × 8 each","Drive through working leg and lower slowly."],
+["RB: tempo-change cone drill","4 reps","Approach at 70%, slow for two steps, then plant once and burst 5 yards."],
+["RB: ball security finish","4 reps","Carry high and tight through cones, finish with two hands over the ball in a controlled stop."],
+["Dead bug","2 × 8 each","Slow, controlled opposite arm/leg movement."]
+]},
+{day:"Tuesday",title:"Acceleration + DL run defense",focus:"Repeat short acceleration and practice gap movement without contact.",items:[
+["Warm-up","10 min","Dynamic movement and progressive build-ups."],
+["10-yard acceleration","5 reps","Full rest; focus on push and posture."],
+["DL: stance and key read","4 × 2","On coach's cue, take first step toward a called gap; no guessing or false step."],
+["DL: gap step and square","4 × 2 each side","Step into marked gap, keep shoulders square and hands ready, then freeze for coach feedback."],
+["DL: shed path around shield","3 × 3","Coach holds shield; fit hands inside, step laterally to clear, then run through a cone. No uncontrolled collision."],
+["RB: start and burst","4 × 5–10 yd","Consistent stance, first three steps powerful, full recovery."],
+["Easy tempo","4 × 20 sec / 40 sec walk","Comfortable pace, stop before fatigue changes mechanics."]
+]},
+{day:"Wednesday",title:"Upper strength + DL counter moves",focus:"Maintain upper strength and rehearse controlled counter-move mechanics.",items:[
+["Warm-up","8 min","Band work, arm circles and light rows."],
+["DB bench press","3 × 8","Controlled range, stable shoulders."],
+["Chest-supported row","3 × 10","No torso swing; pause briefly."],
+["Incline DB press","2 × 10","Smooth reps and manageable load."],
+["Rear-delt fly","2 × 12","Light load, controlled shoulder movement."],
+["DL: club-rip to counter step","3 × 2 each","Practice sequence slowly in the air, then at moderate speed around a bag. Coach checks footwork."],
+["Suitcase carry","2 × 20 yd each","Keep torso upright without leaning."]
+]},
+{day:"Thursday",title:"Agility + RB pass protection / DL pursuit",focus:"Revisit core skills with a new movement pattern.",items:[
+["Warm-up","10 min","Jog, lateral shuffle, skips and build-ups."],
+["5-10-5 technique","3 reps","Walk through first, then controlled speed; plant and push away cleanly."],
+["RB: pass-protection mirror","4 × 5 sec","Mirror partner at moderate speed with short kick-slide steps; no contact."],
+["RB: redirect after protection set","3 × 3","Take two kick-slide steps, plant, redirect and accelerate 3 yards."],
+["DL: pursuit angle","4 reps","Start from a stance, take a safe angle toward a cone and run through the finish point."],
+["DL: mirror shuffle to close","3 × 5 sec","Stay square, move feet under hips and close space without diving or tackling."],
+["Easy aerobic work","10 min","Walk/jog at a pace where full sentences are possible."]
+]},
+{day:"Friday",title:"Strength review + position skill challenge",focus:"Consolidate the block, not a max-out day.",items:[
+["Warm-up","8–10 min","Easy movement and mobility."],
+["Trap-bar deadlift or coached hinge","3 × 5","Moderate load, strong brace, no grinding."],
+["Push-up or DB press","2 × 8–10","Quality reps only."],
+["Cable row","2 × 10","Controlled pull and return."],
+["RB: 3-cone cut circuit","3 rounds","Use wide spacing, one clean plant at each cone, ball secured throughout."],
+["DL: stance/get-off/hand-fit circuit","3 rounds","One stance, one get-off, one coach-held shield hand-fit; reset and get feedback each round."],
+["Cool-down","5 min","Walk and gentle mobility."]
+]}
+]
+];
+const milestones=[
+{title:"40-yard dash",base:"5.8 sec baseline",targets:["Confirm 5.8 with consistent timing","5.75–5.8 sec","5.7–5.75 sec","5.6–5.7 sec"],how:"Test on the same surface with the same timing method, when rested and supervised. A hand-timed result is not directly comparable to electronic timing."},
+{title:"10-yard acceleration",base:"Record baseline first",targets:["Establish a consistent baseline","Improve start mechanics and repeat baseline","Small measurable improvement (about 0.03–0.05 sec)","Repeat best time with clean technique"],how:"Use the same start stance, surface and timing method. Record 2–3 rested attempts; don't chase times when tired."},
+{title:"5-10-5 shuttle",base:"Record baseline first",targets:["Learn and record clean baseline","Improve plant mechanics; repeat baseline","Small improvement (about 0.05 sec)","Repeat best clean time"],how:"Use the same direction and setup each time; record both directions if possible."},
+{title:"Bench press",base:"245 lb reported previous best; confirm with coach",targets:["Use consistent safe working sets","Complete prescribed sets with cleaner control","Small increase in working-set load if coach approves","Maintain or improve strength with excellent technique"],how:"Do not max out alone. A coach should choose loads, supervise a spotter and account for growth and recovery."},
+{title:"Broad jump",base:"Record baseline first",targets:["Learn safe landing and record baseline","Repeat baseline with stable landings","Small improvement while landing quietly","Repeat best controlled distance"],how:"Measure from the start line to the nearest landing point; use the same surface and warm-up."},
+{title:"RB ball security circuit",base:"Score 0–10 with coach",targets:["8/10 secure reps","9/10 secure reps","10/10 secure reps twice","10/10 with clean turns and finish"],how:"Score ball control, high-and-tight position, eyes up and secure finish. No contact required."},
+{title:"RB cut-and-go circuit",base:"Score 0–10 with coach",targets:["7/10 balanced cuts","8/10 clean single plants","9/10 clean cuts at game-like pace","9–10/10 with consistent acceleration"],how:"Score balance, one decisive plant, no extra gather steps and acceleration out of the cut."},
+{title:"DL get-off and first-step score",base:"Score 0–10 with coach",targets:["7/10 correct stance and first step","8/10 no false steps","9/10 fast, balanced first two steps","9–10/10 repeatable on cue"],how:"Coach scores stance, no false step, pad level, direction and balance. Film from the side if available."},
+{title:"DL hand-fit and shed score",base:"Score 0–10 with coach",targets:["7/10 correct hand placement","8/10 hands inside and feet moving","9/10 controlled separation footwork","9–10/10 repeatable with coach-held shield"],how:"Coach scores inside hand placement, elbow position, feet, separation and balance. Use a shield, not live contact."},
+{title:"DL pass-rush move score",base:"Score 0–10 with coach",targets:["Pick one move and perform it correctly","Add a second move with balanced footwork","Link rush move to a controlled counter","8–9/10 clean reps on either side"],how:"Score approach track, footwork, hand action, balance and finish around a bag or marker."}
+];
+let data=JSON.parse(localStorage.getItem("gpUpgrade")||'{"done":[],"tests":[],"week":0}');
+let selectedWeek=0,selectedDay=0;
+function save(){localStorage.setItem("gpUpgrade",JSON.stringify(data));renderDash();renderLogs()}
+function showTab(id){document.querySelectorAll("main>section").forEach(s=>s.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));if(id==="training")renderTraining();if(id==="milestones")renderMilestones();if(id==="logs")renderLogs()}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function key(w,d){return w+"-"+d}
+function renderDash(){document.getElementById("completed").textContent=data.done.length;document.getElementById("currentWeek").textContent=(data.week+1)+" / 4";let n=plan[data.week].filter((x,i)=>data.done.includes(key(data.week,i))).length;document.getElementById("weekBar").style.width=(n/5*100)+"%";document.getElementById("weekProgress").textContent=n+" of 5 training days completed"}
+function renderTraining(){document.getElementById("weekTabs").innerHTML=plan.map((_,i)=>`<button class="${selectedWeek===i?'active':''}" onclick="selectedWeek=${i};selectedDay=0;renderTraining()">Week ${i+1}</button>`).join("");document.getElementById("dayTabs").innerHTML=plan[selectedWeek].map((d,i)=>`<button class="${selectedDay===i?'active':''}" onclick="selectedDay=${i};renderTraining()">${d.day}</button>`).join("");let d=plan[selectedWeek][selectedDay],done=data.done.includes(key(selectedWeek,selectedDay));document.getElementById("workout").innerHTML=`<div class="day"><span class="tag">${d.day.toUpperCase()} · 60–75 MIN</span><h2>${d.title}</h2><p class="muted">${d.focus}</p>${d.items.map(x=>`<div class="drill"><div><strong>${x[0]}</strong><p>${x[2]}</p></div><span class="tag">${x[1]}</span></div>`).join("")}<p class="small">Finish with 3–5 minutes of easy walking and gentle mobility. Adjust rest to keep technique sharp.</p><button class="${done?'':'primary'}" onclick="toggleDone(${selectedWeek},${selectedDay})">${done?'✓ Completed — undo':'Mark workout complete'}</button></div>`}
+function toggleDone(w,d){let k=key(w,d);data.done.includes(k)?data.done=data.done.filter(x=>x!==k):data.done.push(k);save();renderTraining()}
+function renderMilestones(){document.getElementById("milestoneList").innerHTML=milestones.map(m=>`<div class="milestone"><h3>${m.title}</h3><div class="small">${m.base}</div><ol>${m.targets.map(t=>`<li>${t}</li>`).join("")}</ol><p class="small">${m.how}</p></div>`).join("")}
+function addTest(){let result=document.getElementById("result").value.trim();if(!result){alert("Enter a result first.");return}data.tests.unshift({metric:document.getElementById("metric").value,result,date:document.getElementById("date").value||new Date().toISOString().slice(0,10),notes:document.getElementById("notes").value});document.getElementById("result").value="";document.getElementById("notes").value="";save();renderMilestones();alert("Result saved on this device.")}
+function renderLogs(){let names=["Monday","Tuesday","Wednesday","Thursday","Friday"];let done=data.done.map(k=>{let [w,d]=k.split("-").map(Number);return `Week ${w+1} · ${names[d]} — ${plan[w][d].title}`});document.getElementById("workoutLog").innerHTML=done.length?done.map(x=>`<p class="done">✓ ${x}</p>`).join(""):"No completed workouts yet.";document.getElementById("testLog").innerHTML=data.tests.length?`<table><tr><th>Date</th><th>Test</th><th>Result</th><th>Notes</th></tr>${data.tests.map(t=>`<tr><td>${t.date}</td><td>${t.metric}</td><td>${t.result}</td><td>${t.notes||""}</td></tr>`).join("")}</table>`:"No test results yet."}
+function resetData(){if(confirm("Delete all workout and test history saved in this browser?")){data={done:[],tests:[],week:0};save();renderTraining();renderMilestones()}}
+renderDash();renderTraining();renderMilestones();renderLogs();
+</script>
+</body></html>
